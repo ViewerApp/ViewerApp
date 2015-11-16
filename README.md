@@ -1,6 +1,9 @@
 # Viewer
 This app lets you get your naughty on by downloading images from e621.net.
 
+## Demo
+You can check out a demo of the app's functionality [here](https://vid.me/LLhN)
+
 ## Installation
 Apple doesn't like apps that allow you to access porn directly. Consequently the installation process is somewhat challenging. I know you can do it though. :wink:
 
