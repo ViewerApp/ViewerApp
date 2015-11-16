@@ -21,12 +21,9 @@ First, mix the build ingredients together. Batter may be slightly lumpy.
 3. Select the project by clicking the blueprint at the top of the left pane, then select the "General" tab in the main window
 4. Add a random word to the end of the Bundle Identifier.
 5. A couple spaces under the Bundle ID field, you should see a field named "Team". Change that from "None" to your Developer Account or Apple ID
-
-While the batter chills, connect your iPhone or iPod.
-
-Once you've done that, go to Product > Destination and select your device.
-
-When you're ready to make Viewer yours, click the play button and watch as the project is built and installed to your device.
+6. While the batter chills, connect your iPhone or iPod.
+7. Once you've done that, go to Product > Destination and select your device.
+8. When you're ready to make Viewer yours, click the play button and watch as the project is built and installed to your device.
 
 That's it! You can disconnect your device and use the app as much as you'd like.
 
