@@ -12,6 +12,7 @@ Apple doesn't like apps that allow you to access porn directly. Consequently the
 
 ### Instructions
 First, mix the build ingredients together. Batter may be slightly lumpy.
+
 1. Open the "viewer.xcworkspace" file in Xcode.
 2. Open Xcode > Preferences > Accounts, and add your Developer Account or Apple ID credentials.
 3. Select the project by clicking the blueprint at the top of the left pane, then select the "General" tab in the main window
