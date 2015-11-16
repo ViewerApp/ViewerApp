@@ -21,7 +21,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var loadingShimmeringView: FBShimmeringView!
     
     let api = API()
-    let currentVersion = 0
+    let currentVersion = 1
     
     var currentImages: [Image] = []
     var selectedImage: Image! = nil
