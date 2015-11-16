@@ -6,6 +6,8 @@
 import UIKit
 import Haneke
 import Shimmer
+import Alamofire
+import SwiftyJSON
 
 class ViewController: UIViewController, UITextFieldDelegate {
     
@@ -19,6 +21,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var loadingShimmeringView: FBShimmeringView!
     
     let api = API()
+    let currentVersion = 0
     
     var currentImages: [Image] = []
     var selectedImage: Image! = nil
@@ -54,6 +57,43 @@ class ViewController: UIViewController, UITextFieldDelegate {
         
         // Add target to tags field, to detect when the text changes
         tagsField.addTarget(self, action: "textChanged:", forControlEvents: .EditingChanged)
+        
+        checkVersion()
+    }
+    
+    func checkVersion() {
+        let url = NSURL(string: "https://raw.githubusercontent.com/ViewerApp/ViewerApp/master/version.json")!
+        let request = Alamofire.request(.GET, url)
+        
+        print("Checking version.")
+        
+        request.responseJSON { response in
+            if let data = response.data {
+                
+                print("Response recieved")
+                print(data)
+                
+                let defaults = NSUserDefaults.standardUserDefaults()
+                
+                let json = JSON(data: data)
+                
+                print(json["version"].int!)
+                
+                if self.currentVersion != json["version"].int! && !defaults.boolForKey("cantBotherAboutUpdates") {
+                    
+                    let alert = UIAlertController(title: "New Version: \(json["semanticVersion"].stringValue)", message: json["message"].stringValue, preferredStyle: .Alert)
+                    alert.addAction(UIAlertAction(title: "Maybe next time.", style: .Cancel, handler: nil))
+                    alert.addAction(UIAlertAction(title: "Update", style: .Default) { action in
+                        UIApplication.sharedApplication().openURL(NSURL(string: "https://github.com/ViewerApp/ViewerApp")!)
+                    })
+                    alert.addAction(UIAlertAction(title: "Don't bother me about the update", style: .Destructive) { action in
+                        defaults.setBool(true, forKey: "cantBotherAboutUpdates")
+                    })
+                    
+                    self.presentViewController(alert, animated: true, completion: nil)
+                }
+            }
+        }
     }
     
     func keyboardWillShow(notification: NSNotification) {
