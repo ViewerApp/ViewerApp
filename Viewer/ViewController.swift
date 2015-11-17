@@ -37,9 +37,6 @@ class ViewController: UIViewController, UITextFieldDelegate {
         self.collectionView!.backgroundColor = color
         self.navigationController!.navigationBar.barStyle = .Black
         
-//        let tap = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
-//        view.addGestureRecognizer(tap)
-        
         // Sets the height to (screen height - 64) (navigation) and the position above the screen
         suggestionsHeightConstraint.constant = view.frame.height - 64
         suggestionsBottomConstraint.constant = view.frame.height
@@ -48,6 +45,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
         
+        // Sets up the suggestions table to communicate with this class
         suggestionsTableView.delegate = self
         suggestionsTableView.dataSource = self
         
@@ -58,29 +56,37 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // Add target to tags field, to detect when the text changes
         tagsField.addTarget(self, action: "textChanged:", forControlEvents: .EditingChanged)
         
+        // Checks the version for any updates
         checkVersion()
     }
     
+    /// Checks the version, and shows an alert if there's a newer one.
     func checkVersion() {
+        // This url points to a static page, which contains info about the latest version of the app
         let url = NSURL(string: "https://raw.githubusercontent.com/ViewerApp/ViewerApp/master/version.json")!
         let request = Alamofire.request(.GET, url)
         
         print("Checking version.")
         
+        // This bit handles the response
         request.responseJSON { response in
             if let data = response.data {
                 
+                // Prints out any data recieved, for debugging purposes.
                 print("Response recieved")
                 print(data)
                 
+                // Accesses the app's defaults database. This is a simple way to persist data.
                 let defaults = NSUserDefaults.standardUserDefaults()
                 
                 let json = JSON(data: data)
                 
                 print(json["version"].int!)
                 
+                // If the latest version number is different from the current version, and the user hasn't told us not to bother them about updates
                 if self.currentVersion != json["version"].int! && !defaults.boolForKey("cantBotherAboutUpdates") {
                     
+                    // All this just creates and shows the alert telling the user that there's an update available.
                     let alert = UIAlertController(title: "New Version: \(json["semanticVersion"].stringValue)", message: json["message"].stringValue, preferredStyle: .Alert)
                     alert.addAction(UIAlertAction(title: "Maybe next time.", style: .Cancel, handler: nil))
                     alert.addAction(UIAlertAction(title: "Update", style: .Default) { action in
@@ -96,9 +102,11 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
+    /// Slides in the suggestions list when the keyboard is shown
     func keyboardWillShow(notification: NSNotification) {
         print("Keyboard will show!")
         if let keyboardRect = notification.userInfo?[UIKeyboardFrameBeginUserInfoKey]?.CGRectValue {
+            // Makes sure the sizing is all correct for the suggestions, and slides it down to meet the keyboard
             suggestionsBottomConstraint.constant = keyboardRect.height
             suggestionsHeightConstraint.constant = view.frame.height - keyboardRect.height - 64
             UIView.animateWithDuration(0.4, delay: 0, options: .CurveEaseOut, animations: {
@@ -107,21 +115,22 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
+    /// Does the exact opposite of the above code
     func keyboardWillHide(notification: NSNotification) {
         print("Keyboard will hide!")
-        suggestionsHeightConstraint.constant = view.frame.height - 64
         suggestionsBottomConstraint.constant = view.frame.height
+        suggestionsHeightConstraint.constant = view.frame.height - 64
         UIView.animateWithDuration(0.4, delay: 0, options: .CurveEaseIn, animations: {
             self.view.layoutIfNeeded()
             }, completion: nil)
     }
     
+    /// Darkens seen images when the view appears
     override func viewDidAppear(animated: Bool) {
-        let value = UIInterfaceOrientation.Portrait.rawValue
-        UIDevice.currentDevice().setValue(value, forKey: "orientation")
         darkenSeenCells()
     }
     
+    /// This darkens all the images that have been seen
     func darkenSeenCells() {
         for rawCell in collectionView!.visibleCells() {
             if let cell = rawCell as? ImageCell {
@@ -136,19 +145,17 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
+    /// "Sees" an image, so that it will be darkened next time 'round
     func saveSeenImage(id id: String) {
         seenImagesIDs.append(id)
     }
-
-    func dismissKeyboard() {
-        print("Dismissing keyboard!")
-        tagsField.resignFirstResponder()
-    }
     
+    /// Reloads the images, generally called after the completion of a search
     func reloadImages() {
         collectionView!.reloadData()
     }
     
+    // Fairly self explanatory, this starts the loading animation
     func startLoadingAnimation() {
         loadingLabel.hidden = false
         loadingShimmeringView.shimmering = true
@@ -156,20 +163,25 @@ class ViewController: UIViewController, UITextFieldDelegate {
         loadingShimmeringView.shimmeringOpacity = 0.85
     }
     
+    // Opposite of above.
     func stopLoadingAnimation() {
         loadingLabel.hidden = true
         loadingShimmeringView.shimmering = false
     }
     
+    // Called when the user taps on an image. This will show the view with a bigger version.
     func showDetail(index: Int) {
         selectedImage = currentImages[index]
         performSegueWithIdentifier("showDetail", sender: self)
     }
     
+    /// Called when the text changes, and serves to reload the suggestions
     func textChanged(_: UITextField) {
         suggestionsTableView.reloadData()
     }
     
+    /// Called when the user is done typing their query. Clears the images,
+    /// starts the loading animation, and calls the api to get the images.
     @IBAction func editingEnded(sender: AnyObject) {
         print("Enter pressed!")
         seenImagesIDs = []
@@ -184,14 +196,18 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
     }
     
+    /// Called when the editing begins. Really no purpose, so I'm marking it for
+    /// removal when I can figure out what it's connected to in the interface.
     @IBAction func editingBegan(sender: AnyObject) {
         print("Editing began!")
     }
     
+    /// Just a convenient shortcut for me. It makes an array out of a sentence.
     private func arrayWithString(string: String) -> [String] {
         return string.characters.split{$0 == " "}.map(String.init)
     }
     
+    /// This gets the last word in a space separated sentence.
     private func getLastWord(sentence: String) -> String? {
         
         let sentenceArray = sentence.characters.split{$0 == " "}.map(String.init)
@@ -203,7 +219,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
         }
         
     }
-    
+    /// Prepares for the segue, setting the image that needs to be loaded in detail.
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         
         if segue.identifier == "showDetail" {
@@ -216,6 +232,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
 
 }
 
+// TODO: Comment the rest of the class
 // MARK: - Collection Data Source
 
 extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
